@@ -36,8 +36,10 @@ Exemplos:
 Nunca faça commit direto na `main`.
 
 **No GitHub Actions** (quando acionado por `@claude` numa issue), a branch já é criada
-automaticamente pelo workflow com esse padrão, a partir da label da issue (`feat`, `fix` ou `chore`).
-Não crie outra branch: trabalhe na que já está em uso.
+automaticamente pelo workflow com esse padrão, a partir da label da issue (`fix` ou `chore`).
+Se a issue não tiver nenhuma dessas labels, o tipo é `feat`.
+Não crie outra branch: trabalhe na que já está em uso, e use o mesmo tipo dela nos commits e no
+título da PR.
 
 ### 2. Padrão de commit
 

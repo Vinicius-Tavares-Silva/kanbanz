@@ -36,9 +36,9 @@ jobs:
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
 
-          # Branch no padrão do CLAUDE.md: <label>/issue-<n>-<titulo-em-kebab-case>
-          # {{label}} é a primeira label da issue (use feat, fix ou chore)
-          branch_name_template: '{{label}}/issue-{{entityNumber}}-{{description}}'
+          # Branch no padrão do CLAUDE.md: <tipo>/issue-<n>-<titulo-em-kebab-case>
+          # O tipo vem da label da issue (fix ou chore); sem uma dessas labels, assume feat.
+          branch_name_template: "${{ contains(github.event.issue.labels.*.name, 'fix') && 'fix' || contains(github.event.issue.labels.*.name, 'chore') && 'chore' || 'feat' }}/issue-{{entityNumber}}-{{description}}"
 
           # Permite que o Claude abra a PR em vez de só deixar o link "Create PR".
           # cat entra porque o Claude costuma montar o corpo da PR com --body "$(cat <<'EOF' ... EOF)",
