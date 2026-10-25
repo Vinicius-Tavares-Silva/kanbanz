@@ -62,9 +62,19 @@ Exemplos:
 Ao terminar, abra a PR da sua branch para a `main` com `gh pr create` (não deixe apenas o link
 "Create PR"). O título segue o padrão de commit (`<tipo>: <mensagem>`).
 
-No GitHub Actions, rode o `gh pr create` como um comando único, passando o corpo direto em
-`--body "..."` (aspas duplas aceitam quebras de linha). Não encadeie com `cd`, `&&`, `|` ou `;`,
-senão a permissão é negada. Se o comando for negado, diga isso no comentário com o erro exato.
+No GitHub Actions, o validador de permissões bloqueia `--body "..."` quando o texto tem uma linha
+começando com `#` (os títulos `##` do modelo). Por isso:
+
+1. Grave o corpo da PR no arquivo `pr-body.md`, na raiz do repositório, usando a ferramenta de
+   escrita de arquivos (não use `cat`, `echo` ou heredoc). Esse arquivo está no `.gitignore`: nunca o
+   adicione ao commit.
+2. Rode um único comando, sem `cd`, `&&`, `|` ou `;`:
+
+   ```bash
+   gh pr create --base main --title "<tipo>: <mensagem>" --body-file pr-body.md
+   ```
+
+Se o comando for negado, diga isso no comentário com o erro exato.
 
 A descrição deve ser escrita **em português** e seguir exatamente este modelo:
 
