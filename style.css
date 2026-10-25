@@ -201,6 +201,11 @@ label { display: block; font-size: 14px; font-weight: 600; margin: 14px 0 6px; }
   width: 100%;
   word-break: break-word;
 }
+.task.colored { border-left: 6px solid var(--task-color); }
+.color-field { display: flex; align-items: center; gap: 12px; }
+.color-field input[type="color"] { width: 56px; height: 36px; padding: 2px; cursor: pointer; }
+.color-field .color-none { display: flex; align-items: center; gap: 6px; margin: 0; font-size: 14px; }
+.color-field .color-none input { width: auto; }
 .task:hover { box-shadow: 0 2px 6px rgba(9, 30, 66, 0.2); }
 .task .title { font-weight: 500; font-size: 14px; }
 .task .desc { color: var(--muted); font-size: 13px; margin-top: 4px; white-space: pre-wrap;

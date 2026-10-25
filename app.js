@@ -5,6 +5,7 @@ const SESSION_KEY = 'kanbanz_session';
 const dataKey = (userId) => `kanbanz_data_${userId}`;
 const DEFAULT_PHASES = ['A fazer', 'Fazendo', 'Feito'];
 const DEFAULT_LIMIT = 10;
+const DEFAULT_COLOR = '#4f46e5';
 
 const app = document.getElementById('app');
 
@@ -244,7 +245,7 @@ function renderBoard(boardId) {
       </div>
       <div class="task-list">
         ${col.tasks.map((t) => `
-          <div class="task" draggable="true" role="button" tabindex="0" data-task-id="${t.id}" data-action="edit-task">
+          <div class="task${t.color ? ' colored' : ''}" draggable="true" role="button" tabindex="0" data-task-id="${t.id}" data-action="edit-task"${t.color ? ` style="--task-color:${esc(t.color)}"` : ''}>
             ${renderTaskTags(board, t)}
             <div class="title">${esc(t.title)}</div>
             ${t.description ? `<div class="desc">${esc(t.description)}</div>` : ''}
@@ -389,6 +390,11 @@ function taskDialog(boardId, columnId, taskId) {
       <input id="task-assignee" name="assignee" value="${esc(task?.assignee || '')}" placeholder="Quem vai cuidar disso? (opcional)" />
       <label for="task-deadline">Deadline</label>
       <input id="task-deadline" name="deadline" type="date" value="${esc(task?.deadline || '')}" />
+      <label for="task-color">Cor</label>
+      <div class="color-field">
+        <input id="task-color" name="color" type="color" value="${esc(task?.color || DEFAULT_COLOR)}" />
+        <label class="color-none"><input type="checkbox" name="noColor"${task?.color ? '' : ' checked'} /> Sem cor</label>
+      </div>
       <label>Tags</label>
       ${tagOptions}
       <input name="newTags" placeholder="Nova tag (separe várias com vírgula)" />`,
@@ -397,6 +403,7 @@ function taskDialog(boardId, columnId, taskId) {
       const description = form.elements.description.value.trim();
       const deadline = form.elements.deadline.value;
       const assignee = form.elements.assignee.value.trim();
+      const color = form.elements.noColor.checked ? '' : form.elements.color.value;
       if (!title) return 'Informe o título da tarefa';
       if (!task && isFull(board.columns.find((c) => c.id === columnId))) return 'Esta fase atingiu o limite de tarefas';
       const checked = [...form.querySelectorAll('input[name="tag"]:checked')].map((i) => i.value);
@@ -414,9 +421,9 @@ function taskDialog(boardId, columnId, taskId) {
           if (!tags.includes(tag.id)) tags.push(tag.id);
         }
         if (task) {
-          Object.assign(b.columns.flatMap((c) => c.tasks).find((t) => t.id === taskId), { title, description, assignee, deadline, tags });
+          Object.assign(b.columns.flatMap((c) => c.tasks).find((t) => t.id === taskId), { title, description, assignee, deadline, color, tags });
         } else {
-          b.columns.find((c) => c.id === columnId).tasks.push({ id: uid(), title, description, assignee, deadline, tags });
+          b.columns.find((c) => c.id === columnId).tasks.push({ id: uid(), title, description, assignee, deadline, color, tags });
         }
       });
     },
@@ -470,6 +477,11 @@ document.addEventListener('click', (e) => {
     }
     case 'remove-phase': return el.closest('.phase-row').remove();
   }
+});
+
+// Picking a color turns off "Sem cor".
+document.addEventListener('input', (e) => {
+  if (e.target.matches?.('input[name="color"]')) dialogForm.elements.noColor.checked = false;
 });
 
 // Lets keyboard users open a task card with Enter.
