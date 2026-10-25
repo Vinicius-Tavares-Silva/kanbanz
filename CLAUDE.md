@@ -62,6 +62,10 @@ Exemplos:
 Ao terminar, abra a PR da sua branch para a `main` com `gh pr create` (não deixe apenas o link
 "Create PR"). O título segue o padrão de commit (`<tipo>: <mensagem>`).
 
+No GitHub Actions, rode o `gh pr create` como um comando único, passando o corpo direto em
+`--body "..."` (aspas duplas aceitam quebras de linha). Não encadeie com `cd`, `&&`, `|` ou `;`,
+senão a permissão é negada. Se o comando for negado, diga isso no comentário com o erro exato.
+
 A descrição deve ser escrita **em português** e seguir exatamente este modelo:
 
 ```markdown
