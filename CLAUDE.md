@@ -35,6 +35,10 @@ Exemplos:
 
 Nunca faça commit direto na `main`.
 
+**No GitHub Actions** (quando acionado por `@claude` numa issue), a branch já é criada
+automaticamente pelo workflow com esse padrão, a partir da label da issue (`feat`, `fix` ou `chore`).
+Não crie outra branch: trabalhe na que já está em uso.
+
 ### 2. Padrão de commit
 
 ```
@@ -55,7 +59,8 @@ Exemplos:
 
 ### 3. Pull request
 
-Abra a PR da sua branch para a `main`. O título segue o padrão de commit (`<tipo>: <mensagem>`).
+Ao terminar, abra a PR da sua branch para a `main` com `gh pr create` (não deixe apenas o link
+"Create PR"). O título segue o padrão de commit (`<tipo>: <mensagem>`).
 
 A descrição deve ser escrita **em português** e seguir exatamente este modelo:
 

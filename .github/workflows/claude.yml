@@ -36,6 +36,14 @@ jobs:
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
 
+          # Branch no padrão do CLAUDE.md: <label>/issue-<n>-<titulo-em-kebab-case>
+          # {{label}} é a primeira label da issue (use feat, fix ou chore)
+          branch_name_template: '{{label}}/issue-{{entityNumber}}-{{description}}'
+
+          # Permite que o Claude abra a PR em vez de só deixar o link "Create PR"
+          claude_args: |
+            --allowedTools "Bash(gh pr create:*),Bash(gh pr view:*),Bash(gh pr edit:*),Bash(node --check:*)"
+
           # This is an optional setting that allows Claude to read CI results on PRs
           additional_permissions: |
             actions: read
