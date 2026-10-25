@@ -4,6 +4,7 @@ const USERS_KEY = 'kanbanz_users';
 const SESSION_KEY = 'kanbanz_session';
 const dataKey = (userId) => `kanbanz_data_${userId}`;
 const DEFAULT_PHASES = ['A fazer', 'Fazendo', 'Feito'];
+const DEFAULT_LIMIT = 10;
 
 const app = document.getElementById('app');
 
@@ -94,6 +95,10 @@ function today() {
 }
 
 const formatDate = (iso) => iso.split('-').reverse().join('/');
+
+const columnLimit = (col) => col.limit ?? DEFAULT_LIMIT;
+
+const isFull = (col) => col.tasks.length >= columnLimit(col);
 
 const plural =(n, one, many) => `${n} ${n === 1 ? one : many}`;
 
@@ -231,10 +236,10 @@ function renderBoard(boardId) {
   }
 
   const columns = board.columns.map((col) => `
-    <section class="column" data-column-id="${col.id}">
+    <section class="column${isFull(col) ? ' full' : ''}" data-column-id="${col.id}">
       <div class="column-header">
         <h2>${esc(col.name)}</h2>
-        <span class="count">${col.tasks.length}</span>
+        <span class="count" title="Limite de tarefas da fase">${col.tasks.length}/${columnLimit(col)}</span>
         <button class="icon-btn" title="Editar fase" data-action="edit-column" data-column-id="${col.id}">⋯</button>
       </div>
       <div class="task-list">
@@ -247,7 +252,7 @@ function renderBoard(boardId) {
             ${t.deadline ? `<div class="deadline${t.deadline < today() ? ' overdue' : ''}">📅 ${formatDate(t.deadline)}</div>` : ''}
           </div>`).join('')}
       </div>
-      <button class="btn-ghost add-task" data-action="new-task" data-column-id="${col.id}">+ Adicionar tarefa</button>
+      <button class="btn-ghost add-task" data-action="new-task" data-column-id="${col.id}"${isFull(col) ? ' disabled title="Limite de tarefas atingido"' : ''}>+ Adicionar tarefa</button>
     </section>`).join('');
 
   app.innerHTML = `
@@ -296,7 +301,7 @@ function newBoardDialog() {
         id: uid(),
         name,
         createdAt: new Date().toISOString(),
-        columns: phases.map((p) => ({ id: uid(), name: p, tasks: [] })),
+        columns: phases.map((p) => ({ id: uid(), name: p, limit: DEFAULT_LIMIT, tasks: [] })),
       };
       updateBoards((boards) => boards.push(board));
       location.hash = `#/board/${board.id}`;
@@ -332,14 +337,21 @@ function columnDialog(boardId, columnId) {
     submitLabel: column ? 'Salvar' : 'Adicionar',
     body: `
       <label for="column-name">Nome da fase</label>
-      <input id="column-name" name="name" value="${esc(column?.name || '')}" placeholder="Ex.: Em revisão" />`,
+      <input id="column-name" name="name" value="${esc(column?.name || '')}" placeholder="Ex.: Em revisão" />
+      <label for="column-limit">Limite de tarefas</label>
+      <input id="column-limit" name="limit" type="number" min="1" step="1" value="${column ? columnLimit(column) : DEFAULT_LIMIT}" />`,
     onSubmit(form) {
       const name = form.elements.name.value.trim();
       if (!name) return 'Informe o nome da fase';
+      const limit = Number(form.elements.limit.value);
+      if (!Number.isInteger(limit) || limit < 1) return 'O limite deve ser um número inteiro maior que zero';
+      if (column && limit < column.tasks.length) {
+        return `A fase já tem ${plural(column.tasks.length, 'tarefa', 'tarefas')}; o limite não pode ser menor`;
+      }
       updateBoards((boards) => {
         const b = boards.find((x) => x.id === boardId);
-        if (column) b.columns.find((c) => c.id === columnId).name = name;
-        else b.columns.push({ id: uid(), name, tasks: [] });
+        if (column) Object.assign(b.columns.find((c) => c.id === columnId), { name, limit });
+        else b.columns.push({ id: uid(), name, limit, tasks: [] });
       });
     },
     onDelete: column && (() => {
@@ -386,6 +398,7 @@ function taskDialog(boardId, columnId, taskId) {
       const deadline = form.elements.deadline.value;
       const assignee = form.elements.assignee.value.trim();
       if (!title) return 'Informe o título da tarefa';
+      if (!task && isFull(board.columns.find((c) => c.id === columnId))) return 'Esta fase atingiu o limite de tarefas';
       const checked = [...form.querySelectorAll('input[name="tag"]:checked')].map((i) => i.value);
       const newNames = form.elements.newTags.value.split(',').map((n) => n.trim()).filter(Boolean);
       updateBoards((boards) => {
@@ -421,6 +434,12 @@ function taskDialog(boardId, columnId, taskId) {
 function moveTask(boardId, taskId, toColumnId, index) {
   updateBoards((boards) => {
     const board = boards.find((b) => b.id === boardId);
+    const target = board.columns.find((c) => c.id === toColumnId);
+    // Reordering inside the same column is always allowed; entering a full one is not.
+    if (isFull(target) && !target.tasks.some((t) => t.id === taskId)) {
+      alert(`A fase "${target.name}" atingiu o limite de ${columnLimit(target)} tarefas`);
+      return;
+    }
     let task;
     for (const c of board.columns) {
       const i = c.tasks.findIndex((t) => t.id === taskId);

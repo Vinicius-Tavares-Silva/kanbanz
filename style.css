@@ -219,6 +219,12 @@ label { display: block; font-size: 14px; font-weight: 600; margin: 14px 0 6px; }
 }
 
 .add-task { margin: 6px 8px 8px; text-align: left; }
+.add-task:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.column.full .column-header .count {
+  color: #fff;
+  background: #c9372c;
+}
 
 .add-column {
   flex: 0 0 280px;
