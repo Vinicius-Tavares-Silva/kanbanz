@@ -87,7 +87,15 @@ function esc(str) {
   ));
 }
 
-const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
+// Deadlines are stored as 'YYYY-MM-DD' strings, so they compare lexically.
+function today() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+const formatDate = (iso) => iso.split('-').reverse().join('/');
+
+const plural =(n, one, many) => `${n} ${n === 1 ? one : many}`;
 
 function topbar() {
   return `
@@ -221,6 +229,7 @@ function renderBoard(boardId) {
           <div class="task" draggable="true" role="button" tabindex="0" data-task-id="${t.id}" data-action="edit-task">
             <div class="title">${esc(t.title)}</div>
             ${t.description ? `<div class="desc">${esc(t.description)}</div>` : ''}
+            ${t.deadline ? `<div class="deadline${t.deadline < today() ? ' overdue' : ''}">📅 ${formatDate(t.deadline)}</div>` : ''}
           </div>`).join('')}
       </div>
       <button class="btn-ghost add-task" data-action="new-task" data-column-id="${col.id}">+ Adicionar tarefa</button>
@@ -341,17 +350,20 @@ function taskDialog(boardId, columnId, taskId) {
       <label for="task-title">Título</label>
       <input id="task-title" name="title" value="${esc(task?.title || '')}" placeholder="O que precisa ser feito?" />
       <label for="task-desc">Descrição</label>
-      <textarea id="task-desc" name="description" placeholder="Detalhes (opcional)">${esc(task?.description || '')}</textarea>`,
+      <textarea id="task-desc" name="description" placeholder="Detalhes (opcional)">${esc(task?.description || '')}</textarea>
+      <label for="task-deadline">Deadline</label>
+      <input id="task-deadline" name="deadline" type="date" value="${esc(task?.deadline || '')}" />`,
     onSubmit(form) {
       const title = form.elements.title.value.trim();
       const description = form.elements.description.value.trim();
+      const deadline = form.elements.deadline.value;
       if (!title) return 'Informe o título da tarefa';
       updateBoards((boards) => {
         const b = boards.find((x) => x.id === boardId);
         if (task) {
-          Object.assign(b.columns.flatMap((c) => c.tasks).find((t) => t.id === taskId), { title, description });
+          Object.assign(b.columns.flatMap((c) => c.tasks).find((t) => t.id === taskId), { title, description, deadline });
         } else {
-          b.columns.find((c) => c.id === columnId).tasks.push({ id: uid(), title, description });
+          b.columns.find((c) => c.id === columnId).tasks.push({ id: uid(), title, description, deadline });
         }
       });
     },

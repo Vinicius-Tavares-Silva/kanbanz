@@ -205,6 +205,8 @@ label { display: block; font-size: 14px; font-weight: 600; margin: 14px 0 6px; }
 .task .title { font-weight: 500; font-size: 14px; }
 .task .desc { color: var(--muted); font-size: 13px; margin-top: 4px; white-space: pre-wrap;
   display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.task .deadline { color: var(--muted); font-size: 12px; margin-top: 6px; }
+.task .deadline.overdue { color: #dc2626; font-weight: 500; }
 .task.dragging { opacity: 0.4; }
 
 .placeholder {
