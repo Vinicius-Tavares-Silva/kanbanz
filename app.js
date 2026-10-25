@@ -243,6 +243,7 @@ function renderBoard(boardId) {
             ${renderTaskTags(board, t)}
             <div class="title">${esc(t.title)}</div>
             ${t.description ? `<div class="desc">${esc(t.description)}</div>` : ''}
+            ${t.assignee ? `<div class="assignee">👤 ${esc(t.assignee)}</div>` : ''}
             ${t.deadline ? `<div class="deadline${t.deadline < today() ? ' overdue' : ''}">📅 ${formatDate(t.deadline)}</div>` : ''}
           </div>`).join('')}
       </div>
@@ -372,6 +373,8 @@ function taskDialog(boardId, columnId, taskId) {
       <input id="task-title" name="title" value="${esc(task?.title || '')}" placeholder="O que precisa ser feito?" />
       <label for="task-desc">Descrição</label>
       <textarea id="task-desc" name="description" placeholder="Detalhes (opcional)">${esc(task?.description || '')}</textarea>
+      <label for="task-assignee">Responsável</label>
+      <input id="task-assignee" name="assignee" value="${esc(task?.assignee || '')}" placeholder="Quem vai cuidar disso? (opcional)" />
       <label for="task-deadline">Deadline</label>
       <input id="task-deadline" name="deadline" type="date" value="${esc(task?.deadline || '')}" />
       <label>Tags</label>
@@ -381,6 +384,7 @@ function taskDialog(boardId, columnId, taskId) {
       const title = form.elements.title.value.trim();
       const description = form.elements.description.value.trim();
       const deadline = form.elements.deadline.value;
+      const assignee = form.elements.assignee.value.trim();
       if (!title) return 'Informe o título da tarefa';
       const checked = [...form.querySelectorAll('input[name="tag"]:checked')].map((i) => i.value);
       const newNames = form.elements.newTags.value.split(',').map((n) => n.trim()).filter(Boolean);
@@ -397,9 +401,9 @@ function taskDialog(boardId, columnId, taskId) {
           if (!tags.includes(tag.id)) tags.push(tag.id);
         }
         if (task) {
-          Object.assign(b.columns.flatMap((c) => c.tasks).find((t) => t.id === taskId), { title, description, deadline, tags });
+          Object.assign(b.columns.flatMap((c) => c.tasks).find((t) => t.id === taskId), { title, description, assignee, deadline, tags });
         } else {
-          b.columns.find((c) => c.id === columnId).tasks.push({ id: uid(), title, description, deadline, tags });
+          b.columns.find((c) => c.id === columnId).tasks.push({ id: uid(), title, description, assignee, deadline, tags });
         }
       });
     },
