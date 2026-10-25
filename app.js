@@ -210,6 +210,19 @@ function renderBoards() {
     </main>`;
 }
 
+// Tags get a stable color derived from their name.
+function tagHue(name) {
+  let h = 0;
+  for (const ch of name) h = (h * 31 + ch.charCodeAt(0)) % 360;
+  return h;
+}
+
+function renderTaskTags(board, task) {
+  const tags = (task.tags || []).map((id) => (board.tags || []).find((t) => t.id === id)).filter(Boolean);
+  if (!tags.length) return '';
+  return `<div class="tags">${tags.map((t) => `<span class="tag" style="--tag-hue:${tagHue(t.name)}">${esc(t.name)}</span>`).join('')}</div>`;
+}
+
 function renderBoard(boardId) {
   const board = getBoards().find((b) => b.id === boardId);
   if (!board) {
@@ -227,6 +240,7 @@ function renderBoard(boardId) {
       <div class="task-list">
         ${col.tasks.map((t) => `
           <div class="task" draggable="true" role="button" tabindex="0" data-task-id="${t.id}" data-action="edit-task">
+            ${renderTaskTags(board, t)}
             <div class="title">${esc(t.title)}</div>
             ${t.description ? `<div class="desc">${esc(t.description)}</div>` : ''}
             ${t.deadline ? `<div class="deadline${t.deadline < today() ? ' overdue' : ''}">📅 ${formatDate(t.deadline)}</div>` : ''}
@@ -343,6 +357,13 @@ function columnDialog(boardId, columnId) {
 function taskDialog(boardId, columnId, taskId) {
   const board = getBoards().find((b) => b.id === boardId);
   const task = taskId && board.columns.flatMap((c) => c.tasks).find((t) => t.id === taskId);
+  const tagOptions = (board.tags || []).length
+    ? `<div class="tag-options">${board.tags.map((t) => `
+        <label class="tag-option">
+          <input type="checkbox" name="tag" value="${t.id}"${task?.tags?.includes(t.id) ? ' checked' : ''} />
+          <span class="tag" style="--tag-hue:${tagHue(t.name)}">${esc(t.name)}</span>
+        </label>`).join('')}</div>`
+    : '';
   openDialog({
     title: task ? 'Editar tarefa' : 'Nova tarefa',
     submitLabel: task ? 'Salvar' : 'Adicionar',
@@ -352,18 +373,33 @@ function taskDialog(boardId, columnId, taskId) {
       <label for="task-desc">Descrição</label>
       <textarea id="task-desc" name="description" placeholder="Detalhes (opcional)">${esc(task?.description || '')}</textarea>
       <label for="task-deadline">Deadline</label>
-      <input id="task-deadline" name="deadline" type="date" value="${esc(task?.deadline || '')}" />`,
+      <input id="task-deadline" name="deadline" type="date" value="${esc(task?.deadline || '')}" />
+      <label>Tags</label>
+      ${tagOptions}
+      <input name="newTags" placeholder="Nova tag (separe várias com vírgula)" />`,
     onSubmit(form) {
       const title = form.elements.title.value.trim();
       const description = form.elements.description.value.trim();
       const deadline = form.elements.deadline.value;
       if (!title) return 'Informe o título da tarefa';
+      const checked = [...form.querySelectorAll('input[name="tag"]:checked')].map((i) => i.value);
+      const newNames = form.elements.newTags.value.split(',').map((n) => n.trim()).filter(Boolean);
       updateBoards((boards) => {
         const b = boards.find((x) => x.id === boardId);
+        b.tags ||= [];
+        const tags = [...checked];
+        for (const name of newNames) {
+          let tag = b.tags.find((t) => t.name.toLowerCase() === name.toLowerCase());
+          if (!tag) {
+            tag = { id: uid(), name };
+            b.tags.push(tag);
+          }
+          if (!tags.includes(tag.id)) tags.push(tag.id);
+        }
         if (task) {
-          Object.assign(b.columns.flatMap((c) => c.tasks).find((t) => t.id === taskId), { title, description, deadline });
+          Object.assign(b.columns.flatMap((c) => c.tasks).find((t) => t.id === taskId), { title, description, deadline, tags });
         } else {
-          b.columns.find((c) => c.id === columnId).tasks.push({ id: uid(), title, description, deadline });
+          b.columns.find((c) => c.id === columnId).tasks.push({ id: uid(), title, description, deadline, tags });
         }
       });
     },

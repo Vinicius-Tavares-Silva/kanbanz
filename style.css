@@ -247,4 +247,18 @@ dialog h2 { margin: 0 0 4px; font-size: 20px; }
 
 .phase-row { display: flex; gap: 6px; margin-bottom: 6px; }
 .phase-row input { flex: 1; }
+.tags, .tag-options { display: flex; flex-wrap: wrap; gap: 6px; }
+.tags { margin-bottom: 6px; }
+.tag {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: hsl(var(--tag-hue), 60%, 25%);
+  background: hsl(var(--tag-hue), 70%, 88%);
+}
+.tag-options { margin-bottom: 8px; }
+.tag-option { display: inline-flex; align-items: center; gap: 4px; margin: 0; font-weight: normal; cursor: pointer; }
+.tag-option input { width: auto; }
 .link-btn { color: var(--primary); font-weight: 600; font-size: 14px; padding: 4px 0; }
