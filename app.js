@@ -7,7 +7,17 @@ const DEFAULT_PHASES = ['A fazer', 'Fazendo', 'Feito'];
 const DEFAULT_LIMIT = 10;
 const DEFAULT_COLOR = '#4f46e5';
 
+const THEME_KEY = 'kanbanz_theme';
+
 const app = document.getElementById('app');
+
+// ---------- theme ----------
+
+const currentTheme = () => (localStorage.getItem(THEME_KEY) === 'dark' ? 'dark' : 'light');
+
+const applyTheme = () => { document.documentElement.dataset.theme = currentTheme(); };
+
+applyTheme();
 
 // ---------- storage ----------
 
@@ -108,6 +118,11 @@ function topbar() {
     <header class="topbar">
       <a class="brand" href="#/boards">Kanbanz</a>
       <span class="spacer"></span>
+      <label class="theme-switch" title="Alternar modo escuro">
+        <input type="checkbox" role="switch" data-action="toggle-theme" ${currentTheme() === 'dark' ? 'checked' : ''} />
+        <span class="track"></span>
+        <span class="label">Escuro</span>
+      </label>
       <span class="user">${esc(currentUser().email)}</span>
       <button class="btn-ghost" data-action="logout">Sair</button>
     </header>`;
@@ -465,6 +480,9 @@ document.addEventListener('click', (e) => {
 
   switch (el.dataset.action) {
     case 'logout': return logout();
+    case 'toggle-theme':
+      localStorage.setItem(THEME_KEY, el.checked ? 'dark' : 'light');
+      return applyTheme();
     case 'new-board': return newBoardDialog();
     case 'edit-board': return editBoardDialog(boardId);
     case 'new-column': return columnDialog(boardId);
